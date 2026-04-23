@@ -7,7 +7,7 @@ import { initSocket, getIO, startLive } from "@/lib/socket";
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { courseId: providedId, type, visibility } = body;
+  const { courseId: providedId, type, visibility, allowedUsers } = body;
 
   const session = await getServerSession(authOptions as any);
   if (!(session as any)?.user?.id)
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
 
 
-  const state = startLive(courseId, (session as any).user.id, visibility || 'public');
+  const state = startLive(courseId, (session as any).user.id, visibility || 'public', allowedUsers);
   const io = getIO();
   if (io) io.to(courseId).emit("classStarted", { courseId });
 

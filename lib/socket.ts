@@ -10,6 +10,7 @@ type LiveClassState = {
   startTime: Date;           // When class started
   attendees: Set<string>;    // Unique attendees (userIds)
   visibility: 'public' | 'private' | 'class'; // Meeting visibility
+  allowedUsers?: string[];   // Specific user IDs or admin IDs allowed to join
 };
 
 declare global {
@@ -153,7 +154,7 @@ export function getIO() {
 }
 
 // Start a live class
-export function startLive(courseId: string, instructorId: string, visibility: 'public' | 'private' | 'class' = 'public') {
+export function startLive(courseId: string, instructorId: string, visibility: 'public' | 'private' | 'class' = 'public', allowedUsers?: string[]) {
   const map = ensureState();
 
   if (map.has(courseId)) return map.get(courseId); // Prevent duplicate sessions
@@ -164,6 +165,7 @@ export function startLive(courseId: string, instructorId: string, visibility: 'p
     startTime: new Date(), // Record start time
     attendees: new Set(),  // Initialize empty attendee set
     visibility,            // Store visibility
+    allowedUsers,          // Store allowed users list
   };
 
   map.set(courseId, newState); // Store state

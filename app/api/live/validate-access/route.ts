@@ -48,10 +48,13 @@ export async function POST(req: NextRequest) {
             }
         }
 
+        // Get live class state
+        const map: Map<string, any> | undefined = (global as any).__liveClasses;
+        const liveState = map?.get(courseId);
+
         // If not found in DB, check memory (instant meeting)
         if (!course) {
-            const map: Map<string, any> | undefined = (global as any).__liveClasses;
-            if (!map || !map.has(courseId)) {
+            if (!liveState) {
                 return NextResponse.json(
                     { success: false, error: "Meeting not found" },
                     { status: 404 }
@@ -78,6 +81,17 @@ export async function POST(req: NextRequest) {
         //     { status: 403 }
         //   );
         // }
+
+        // Check Allowed Users for Private/Class Meetings
+        if (liveState?.allowedUsers && liveState.allowedUsers.length > 0) {
+            const isAllowed = liveState.allowedUsers.includes(user._id.toString()) || user.role === 'admin';
+            if (!isAllowed) {
+                return NextResponse.json(
+                    { success: false, error: "You are not authorized to join this private meeting" },
+                    { status: 403 }
+                );
+            }
+        }
 
         // Create response
         const response = NextResponse.json({

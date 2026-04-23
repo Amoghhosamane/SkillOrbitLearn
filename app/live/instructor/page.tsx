@@ -14,6 +14,7 @@ export default function InstructorLivePage() {
   const [courses, setCourses] = useState<any[]>([]);
   const [courseId, setCourseId] = useState("");
   const [visibility, setVisibility] = useState<'public' | 'private' | 'class'>('public');
+  const [allowedUsersInput, setAllowedUsersInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -61,7 +62,10 @@ export default function InstructorLivePage() {
         body: JSON.stringify({
           courseId: targetId,
           type: !targetId ? 'instant' : undefined,
-          visibility: visibility
+          visibility: visibility,
+          allowedUsers: (visibility === 'private' || visibility === 'class') && allowedUsersInput.trim() 
+            ? allowedUsersInput.split(',').map(id => id.trim()).filter(id => id) 
+            : undefined
         })
       });
       const json = await res.json();
@@ -160,6 +164,34 @@ export default function InstructorLivePage() {
               <p className="text-[11px] font-medium opacity-60">Only for invited participants. Requires Meeting ID.</p>
             </button>
           </div>
+
+          {/* Allowed Users Input (Only for Private/Class) */}
+          <AnimatePresence>
+            {(visibility === 'private' || visibility === 'class') && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                animate={{ opacity: 1, height: 'auto', marginTop: 24 }}
+                exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="p-6 bg-black/40 border border-white/10 rounded-2xl">
+                  <label className="block text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-3">
+                    Allowed User/Admin IDs (Comma Separated)
+                  </label>
+                  <input
+                    type="text"
+                    value={allowedUsersInput}
+                    onChange={(e) => setAllowedUsersInput(e.target.value)}
+                    placeholder="e.g. 64b9a1f2..., admin_user_id"
+                    className="w-full px-5 py-4 bg-black border border-white/10 rounded-xl text-sm font-mono placeholder-gray-700 focus:outline-none focus:border-red-600/50 transition-all"
+                  />
+                  <p className="mt-2 text-[10px] text-gray-500 italic">
+                    If left blank, any authenticated user with the Meeting ID can join.
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
 
         {/* Studio Grid */}
